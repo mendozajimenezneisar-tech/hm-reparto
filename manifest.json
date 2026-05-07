@@ -1,0 +1,23 @@
+{
+    "name": "HM Distribuciones · Reparto",
+    "short_name": "HM Reparto",
+    "description": "Aplicación de gestión de repartos para HM Distribuciones",
+    "start_url": "/hm-reparto/",
+    "scope": "/hm-reparto/",
+    "display": "standalone",
+    "background_color": "#f0f0eb",
+    "theme_color": "#111111",
+    "orientation": "portrait",
+    "icons": [
+          {
+                  "src": "https://via.placeholder.com/192x192.png?text=HM",
+                  "sizes": "192x192",
+                  "type": "image/png"
+          },
+          {
+                  "src": "https://via.placeholder.com/512x512.png?text=HM",
+                  "sizes": "512x512",
+                  "type": "image/png"
+          }
+    ]
+}
