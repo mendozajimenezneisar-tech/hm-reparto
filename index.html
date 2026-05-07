@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>HM Distribuciones · Reparto</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f0eb; min-height: 100vh; display: flex; justify-content: center; }
+.app { width: 100%; max-width: 480px; background: #fff; min-height: 100vh; display: flex; flex-direction: column; }
+.header { padding: 14px 16px; border-bottom: 1px solid #e8e8e8; display: flex; align-items: center; justify-content: space-between; }
+.header-logo { font-size: 16px; font-weight: 700; color: #111; }
+.header-sub { font-size: 12px; color: #888; margin-top: 2px; }
+.badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.badge-green { background:#e6f4d7; color:#2e7d0a; }
+.badge-blue  { background:#e3f0ff; color:#1565c0; }
+.badge-amber { background:#fff3e0; color:#e65100; }
+.sync-bar { display:flex; align-items:center; gap:8px; padding:7px 16px; background:#fafafa; border-bottom:1px solid #e8e8e8; font-size:12px; color:#666; }
+.dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; background:#4caf50; }
+.dot.loading { background:#ff9800; animation:pulse 1s infinite; }
+.dot.error { background:#f44336; }
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.tab-bar { display:flex; border-bottom:1px solid #e8e8e8; }
+.tab { flex:1; padding:12px 4px; font-size:12px; font-weight:500; color:#888; text-align:center; cursor:pointer; border-bottom:2px solid transparent; background:none; border-top:none; border-left:none; border-right:none; }
+.tab.active { color:#1565c0; border-bottom-color:#1565c0; }
+.screen { display:none; flex-direction:column; flex:1; overflow-y:auto; }
+.screen.active { display:flex; }
+.section-title { font-size:11px; font-weight:600; color:#999; padding:14px 16px 6px; text-transform:uppercase; letter-spacing:0.06em; }
+.btn { height:42px; padding:0 16px; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; border:none; display:inline-flex; align-items:center; gap:6px; }
+.btn-primary { background:#1565c0; color:#fff; }
+.btn-success { background:#e6f4d7; color:#2e7d0a; border:1px solid #b5d98a; }
+.btn-cancel  { background:#f0f0f0; color:#333; }
+.btn-danger  { background:#fdecea; color:#c62828; border:1px solid #f5c6c6; }
+.btn-full { width:calc(100% - 32px); margin:0 16px 12px; justify-content:center; }
+.btn-sm { height:30px; padding:0 10px; font-size:12px; font-weight:500; border-radius:8px; cursor:pointer; border:1px solid #ddd; background:#fff; color:#333; display:inline-flex; align-items:center; gap:4px; }
+.input-row { display:flex; gap:8px; padding:12px 16px 8px; }
+.input-row input { flex:1; height:42px; border:1px solid #ddd; border-radius:10px; padding:0 12px; font-size:15px; color:#111; outline:none; }
+.coches-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:12px 16px; }
+.coche-card { border:1.5px solid #e8e8e8; border-radius:14px; padding:14px 10px; text-align:center; cursor:pointer; position:relative; }
+.coche-card.selected { border-color:#1565c0; background:#e3f0ff; }
+.coche-card.tiene { border-color:#4caf50; }
+.coche-icon { font-size:28px; margin-bottom:6px; }
+.coche-nombre { font-size:13px; font-weight:600; color:#111; }
+.coche-count { font-size:11px; color:#888; margin-top:2px; }
+.coche-badge { position:absolute; top:6px; right:6px; background:#1565c0; color:#fff; border-radius:10px; font-size:10px; font-weight:700; padding:2px 6px; }
+.preview-box { margin:0 16px 10px; border:1.5px solid #90caf9; border-radius:12px; background:#e3f0ff; padding:12px 14px; }
+.preview-nombre { font-size:14px; font-weight:600; color:#1565c0; }
+.preview-meta { font-size:12px; color:#1976d2; margin-top:3px; }
+.alert-box { margin:0 16px 10px; background:#fdecea; border:1px solid #f5c6c6; border-radius:10px; padding:10px 12px; font-size:13px; color:#c62828; }
+.info-box { margin:0 16px 10px; background:#fff8e1; border:1px solid #ffe082; border-radius:10px; padding:10px 12px; font-size:13px; color:#e65100; }
+.cliente-item { display:flex; align-items:center; justify-content:space-between; padding:10px 16px; border-bottom:1px solid #f5f5f5; }
+.cliente-cod { font-size:11px; color:#1565c0; font-weight:600; }
+.cliente-nombre { font-size:13px; font-weight:500; color:#111; }
+.cliente-dir { font-size:11px; color:#888; margin-top:2px; }
+.pedido-card { margin:0 16px 10px; border:1px solid #e8e8e8; border-radius:14px; overflow:hidden; }
+.pedido-card.entregado { background:#f9fdf5; border-color:#a5d6a7; pointer-events:none; }
+.pedido-card.incidencia-card { background:#fff8e1; border-color:#ffe082; pointer-events:none; }
+.pedido-card.activo { border-color:#1565c0; border-width:2px; }
+.pedido-header { display:flex; align-items:flex-start; justify-content:space-between; padding:12px 14px 6px; }
+.pedido-nombre { font-size:14px; font-weight:600; color:#111; }
+.pedido-estado { font-size:12px; margin-top:2px; color:#888; }
+.pedido-dir { font-size:12px; color:#666; padding:0 14px 4px; }
+.pedido-pob { font-size:12px; color:#1565c0; font-weight:500; padding:0 14px 6px; }
+.pedido-horario { font-size:11px; color:#e65100; padding:0 14px 6px; font-weight:500; }
+.pedido-actions { display:flex; gap:6px; padding:8px 14px 10px; border-top:1px solid #f0f0f0; background:#fafafa; flex-wrap:wrap; }
+.pos-circle { width:32px; height:32px; border-radius:50%; color:#fff; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer; background:#1565c0; }
+.pos-circle.activo { background:#e65100; }
+.pos-circle.done { background:#2e7d0a; cursor:default; }
+.pos-circle.inc { background:#f9a825; cursor:default; }
+.banner { margin:10px 16px 0; border-radius:12px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.banner-blue { background:#e3f0ff; border:1px solid #90caf9; }
+.banner-orange { background:#fff3e0; border:1px solid #ffcc02; }
+.banner-green { background:#e6f4d7; border:1px solid #b5d98a; }
+.hint-txt { font-size:11px; color:#999; text-align:center; padding:8px 16px 4px; }
+.stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:12px 16px; }
+.stat-box { background:#f5f5f5; border-radius:12px; padding:12px 8px; text-align:center; }
+.stat-label { font-size:11px; color:#888; }
+.stat-val { font-size:20px; font-weight:700; color:#111; margin-top:2px; }
+.cobro-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #f5f5f5; font-size:13px; }
+.resumen-row { display:flex; justify-content:space-between; padding:11px 16px; border-bottom:1px solid #f5f5f5; font-size:14px; color:#666; }
+.total-row { display:flex; justify-content:space-between; padding:14px 16px; font-size:17px; font-weight:700; color:#111; }
+.ruta-hist { padding:10px 0; border-bottom:1px solid #f5f5f5; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:flex-end; justify-content:center; z-index:200; }
+.modal { background:#fff; border-radius:20px 20px 0 0; padding:22px; width:100%; max-width:480px; max-height:85vh; overflow-y:auto; }
+.modal-title { font-size:16px; font-weight:700; margin-bottom:8px; color:#111; }
+.modal-sub { font-size:13px; color:#666; margin-bottom:14px; }
+.pago-opts { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
+.pago-opt { padding:11px 4px; border:1.5px solid #e8e8e8; border-radius:12px; text-align:center; cursor:pointer; font-size:13px; font-weight:500; color:#666; }
+.pago-opt.sel { border-color:#1565c0; background:#e3f0ff; color:#1565c0; }
+.field-label { font-size:13px; color:#666; margin-bottom:5px; }
+.field-input { height:52px; width:100%; font-size:24px; font-weight:700; border:1.5px solid #ddd; border-radius:12px; padding:0 14px; color:#111; margin-bottom:14px; outline:none; }
+.field-input-sm { height:42px; width:100%; font-size:14px; border:1.5px solid #ddd; border-radius:12px; padding:0 14px; color:#111; margin-bottom:12px; outline:none; }
+.modal-btns { display:flex; gap:10px; }
+.modal-btns .btn { flex:1; justify-content:center; }
+.inc-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+.inc-opt { padding:14px; border:1.5px solid #e8e8e8; border-radius:12px; font-size:13px; cursor:pointer; text-align:center; color:#111; font-weight:500; }
+.share-box { background:#f0f7ff; border:1px solid #90caf9; border-radius:10px; padding:14px; margin-bottom:14px; }
+.share-url-txt { font-size:12px; color:#1565c0; word-break:break-all; font-weight:500; }
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#222; color:#fff; padding:10px 20px; border-radius:20px; font-size:13px; font-weight:500; z-index:999; opacity:0; transition:opacity 0.3s; pointer-events:none; max-width:90vw; text-align:center; }
+.toast.show { opacity:1; }
+.spinner { width:32px; height:32px; border:3px solid #e3f0ff; border-top-color:#1565c0; border-radius:50%; animation:spin 0.8s linear infinite; margin:40px auto; display:block; }
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- JEFE -->
+  <div id="vista-jefe" style="display:none;flex-direction:column;flex:1;">
+    <div class="header">
+      <div><div class="header-logo">HM Distribuciones</div><div class="header-sub">Panel de control</div></div>
+      <span class="badge badge-blue">Jefe</span>
+    </div>
+    <div class="sync-bar">
+      <span class="dot loading" id="sync-dot"></span>
+      <span id="sync-txt">Conectando...</span>
+      <button class="btn-sm" style="margin-left:auto;" onclick="cargarClientes()">Sincronizar</button>
+    </div>
+    <div class="tab-bar">
+      <button class="tab active" onclick="switchTabJefe('asignar')">Asignar rutas</button>
+      <button class="tab" onclick="switchTabJefe('historial')">Rutas del día</button>
+    </div>
+    <div class="screen active" id="jefe-asignar">
+      <p class="section-title">Selecciona un repartidor</p>
+      <div class="coches-grid" id="coches-grid"></div>
+      <div id="panel-coche" style="display:none;">
+        <div style="padding:0 16px 8px;display:flex;align-items:center;justify-content:space-between;">
+          <span id="coche-label" style="font-size:14px;font-weight:600;color:#111;"></span>
+          <div style="display:flex;gap:6px;">
+            <button class="btn-sm" style="background:#e6f4d7;color:#2e7d0a;border-color:#b5d98a;" onclick="abrirCompartir()">📤 Compartir</button>
+            <button class="btn-sm btn-danger" onclick="limpiarCoche()">Vaciar</button>
+          </div>
+        </div>
+        <div class="input-row">
+          <input type="number" id="cod-jefe" placeholder="Código cliente..." />
+          <button class="btn btn-primary" onclick="buscarJefe()">Buscar</button>
+        </div>
+        <div id="preview-jefe"></div>
+        <div id="lista-coche"></div>
+      </div>
+    </div>
+    <div class="screen" id="jefe-historial">
+      <p class="section-title">Rutas enviadas hoy</p>
+      <div id="historial-wrap" style="padding:0 16px;"></div>
+    </div>
+  </div>
+
+  <!-- REPARTIDOR -->
+  <div id="vista-repartidor" style="display:none;flex-direction:column;flex:1;">
+    <div class="header">
+      <div><div class="header-logo" id="rep-titulo">HM Distribuciones</div><div class="header-sub" id="rep-sub">Cargando...</div></div>
+      <span class="badge badge-green">En ruta</span>
+    </div>
+    <div class="sync-bar">
+      <span class="dot loading" id="rep-sync-dot"></span>
+      <span id="rep-sync-txt">Cargando tu ruta...</span>
+    </div>
+    <div class="tab-bar">
+      <button class="tab active" onclick="switchTabRep('ruta')">Mi ruta</button>
+      <button class="tab" onclick="switchTabRep('pagos')">Pagos</button>
+      <button class="tab" onclick="switchTabRep('resumen')">Resumen</button>
+    </div>
+    <div class="screen active" id="rep-ruta">
+      <div id="gps-wrap"></div>
+      <div id="next-wrap"></div>
+      <div id="alert-wrap"></div>
+      <p class="hint-txt">💡 Pulsa el número de posición para cambiar el orden</p>
+      <div id="pedidos-list" style="padding-top:4px;"></div>
+    </div>
+    <div class="screen" id="rep-pagos">
+      <p class="section-title">Caja del día</p>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-label">Contado</div><div class="stat-val" id="rt-contado">0 €</div></div>
+        <div class="stat-box"><div class="stat-label">Tarjeta</div><div class="stat-val" id="rt-tarjeta">0 €</div></div>
+        <div class="stat-box"><div class="stat-label">Pendiente</div><div class="stat-val" id="rt-pend">0</div></div>
+      </div>
+      <p class="section-title">Detalle</p>
+      <div id="rep-cobros" style="padding:0 16px;"></div>
+    </div>
+    <div class="screen" id="rep-resumen">
+      <p class="section-title">Mi jornada</p>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-label">Entregados</div><div class="stat-val" id="rr-ent">0</div></div>
+        <div class="stat-box"><div class="stat-label">Incidencias</div><div class="stat-val" id="rr-inc">0</div></div>
+        <div class="stat-box"><div class="stat-label">Pendientes</div><div class="stat-val" id="rr-pend">0</div></div>
+      </div>
+      <div style="border-top:1px solid #f0f0f0;margin-top:4px;">
+        <div class="resumen-row"><span>Contado</span><span id="rr-contado" style="font-weight:600;color:#111;">0,00 €</span></div>
+        <div class="resumen-row"><span>Tarjeta</span><span id="rr-tarjeta" style="font-weight:600;color:#111;">0,00 €</span></div>
+        <div class="resumen-row"><span>Transferencias</span><span id="rr-transf" style="font-weight:600;color:#111;">0</span></div>
+        <div class="total-row"><span>Total cobrado</span><span id="rr-total">0,00 €</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="vista-loading" style="flex:1;display:flex;align-items:center;justify-content:center;">
+    <div class="spinner"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- MODALES -->
+<div class="modal-overlay" id="modal-share" style="display:none;">
+  <div class="modal">
+    <p class="modal-title" id="share-title">Compartir ruta</p>
+    <div id="share-s1"><button class="btn btn-primary btn-full" id="btn-gen" onclick="generarEnlace()">Guardar y generar enlace</button></div>
+    <div id="share-s2" style="display:none;">
+      <div class="share-box"><div style="font-size:11px;color:#888;margin-bottom:6px;">Enlace del repartidor:</div><div class="share-url-txt" id="share-url-txt"></div></div>
+      <div class="modal-btns">
+        <button class="btn btn-cancel" onclick="closeModal('modal-share')">Cerrar</button>
+        <button class="btn btn-primary" onclick="copiarEnlace()">Copiar</button>
+        <button class="btn btn-success" onclick="enviarWA()">WhatsApp</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-ver" style="display:none;">
+  <div class="modal">
+    <p class="modal-title" id="ver-title">Ruta</p>
+    <div id="ver-body"></div>
+    <div style="margin-top:14px;display:flex;gap:8px;">
+      <button class="btn btn-cancel" style="flex:1;justify-content:center;" onclick="closeModal('modal-ver')">Cerrar</button>
+      <button class="btn btn-success" style="flex:1;justify-content:center;" id="ver-wa">WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-pago" style="display:none;">
+  <div class="modal">
+    <p class="modal-title" id="pago-title">Registrar cobro</p>
+    <div class="pago-opts">
+      <div class="pago-opt sel" id="opt-contado" onclick="selMetodo('contado')">Contado</div>
+      <div class="pago-opt" id="opt-tarjeta" onclick="selMetodo('tarjeta')">Tarjeta</div>
+      <div class="pago-opt" id="opt-transf" onclick="selMetodo('transferencia')">Transferencia</div>
+    </div>
+    <div id="importe-wrap">
+      <div class="field-label">Importe (€)</div>
+      <input type="number" class="field-input" id="importe-inp" placeholder="0,00" step="0.01" min="0" />
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="closeModal('modal-pago')">Cancelar</button>
+      <button class="btn btn-success" onclick="confirmarPago()">Confirmar cobro</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-inc" style="display:none;">
+  <div class="modal">
+    <p class="modal-title">Tipo de incidencia</p>
+    <div class="inc-grid">
+      <div class="inc-opt" onclick="confirmarInc('Local cerrado')">Local cerrado</div>
+      <div class="inc-opt" onclick="confirmarInc('Sin nadie')">Sin nadie</div>
+      <div class="inc-opt" onclick="confirmarInc('Dir. errónea')">Dir. errónea</div>
+      <div class="inc-opt" onclick="confirmarInc('Rechaza pedido')">Rechaza pedido</div>
+    </div>
+    <button class="btn btn-cancel" style="width:100%;justify-content:center;margin-top:4px;" onclick="closeModal('modal-inc')">Cancelar</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-orden" style="display:none;">
+  <div class="modal">
+    <p class="modal-title">Cambiar orden</p>
+    <p class="modal-sub" id="orden-sub"></p>
+    <div class="field-label">Nueva posición:</div>
+    <input type="number" class="field-input-sm" id="orden-pos" min="1" />
+    <div class="field-label">Horario (opcional):</div>
+    <input type="text" class="field-input-sm" id="orden-horario" placeholder="ej: Abre a las 10:00" />
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="closeModal('modal-orden')">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmarOrden()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-salir" style="display:none;">
+  <div class="modal">
+    <p class="modal-title">⚠️ Entregas pendientes cerca</p>
+    <p class="modal-sub">Indica el motivo antes de salir.</p>
+    <div id="salir-lista" style="margin-bottom:12px;"></div>
+    <div class="field-label">Motivo:</div>
+    <input type="text" class="field-input-sm" id="salir-motivo" placeholder="Escribe el motivo..." />
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="closeModal('modal-salir')">Volver</button>
+      <button class="btn btn-danger" onclick="confirmarSalida()">Registrar y salir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SCRIPT  = 'https://script.google.com/macros/s/AKfycbzo3CF7DO5nMkXaxkUcFjUuUzyyacXkZUnwteUbJ2L61fSKqJyrtekNX5lzX7ynHkkb/exec';
+const MAPS_KEY = 'AIzaSyAkx5vAZ4yc7qujvZfpoJSqtvD3x2Dmyv4';
+const APP_URL  = 'https://sprightly-granita-15f5e7.netlify.app';
+const COCHES   = [
+  {id:'coche1', nombre:'Marcos',  icon:'🚐'},
+  {id:'coche2', nombre:'Ricardo', icon:'🚚'},
+  {id:'coche3', nombre:'Extra',   icon:'🚗'},
+];
+
+// Estado jefe
+let clientesDB = {}, cocheActivo = null;
+let rutas    = {coche1:[], coche2:[], coche3:[]};
+let historial = {coche1:[], coche2:[], coche3:[]};
+let shareUrl = '', shareCoheId = '';
+
+// Estado repartidor
+let pedidos = [], cobros = [], stats = {entregados:0, incidencias:0};
+let repCoche = '', rutaId = '';
+let pagoActivo = null, incActiva = null, ordenActivo = null, metodo = 'contado';
+let gps = null, watchId = null;
+
+// =====================================================
+// ARRANQUE
+// =====================================================
+window.addEventListener('DOMContentLoaded', async () => {
+  const p = new URLSearchParams(window.location.search);
+  rutaId = p.get('ruta') || '';
+  if (rutaId) {
+    mostrarVista('vista-repartidor');
+    await iniciarRepartidor();
+  } else {
+    mostrarVista('vista-jefe');
+    cargarEstadoJefe();
+    renderCoches();
+    cargarClientes();
+  }
+});
+
+// =====================================================
+// REPARTIDOR — INICIO
+// =====================================================
+async function iniciarRepartidor() {
+  setRepSync('loading', 'Cargando tu ruta...');
+  try {
+    const data = await api({action:'getRuta', id:rutaId});
+    if (!data.ok) throw new Error(data.error || 'Ruta no encontrada');
+    repCoche = data.coche;
+    document.getElementById('rep-titulo').textContent = 'HM · ' + repCoche;
+    document.getElementById('rep-sub').textContent = repCoche;
+
+    // ---- CLAVE DEL SISTEMA: leer estados guardados desde Sheets ----
+    const estados = await leerEstadosSheets();
+
+    const geo = await geocodificar(data.clientes);
+    pedidos = geo.map((c, i) => {
+      const cod = String(c.codigo);
+      const guardado = estados[cod] || null;
+      // Normalizar a minúsculas: Sheets devuelve "Entregado", app usa "entregado"
+      const estadoNorm = guardado ? guardado.estado.toLowerCase() : 'pendiente';
+      return {
+        cod, info: c,
+        estado:    estadoNorm,
+        pago:      guardado ? guardado.pago      : null,
+        incidencia:guardado ? guardado.incidencia: null,
+        pos: i + 1,
+        lat: c.lat || null, lng: c.lng || null,
+        horarioFijo: null
+      };
+    });
+
+    // Reconstruir cobros desde estados guardados
+    cobros = pedidos
+      .filter(p => p.estado === 'entregado' && p.pago)
+      .map(p => ({cod:p.cod, nombre:p.info.nombre, metodo:p.pago.metodo, importe:p.pago.importe}));
+    stats.entregados   = pedidos.filter(p => p.estado === 'entregado').length;
+    stats.incidencias  = pedidos.filter(p => p.estado === 'incidencia').length;
+
+    const ent = pedidos.filter(p => p.estado !== 'pendiente').length;
+    setRepSync('ok', '✓ ' + pedidos.length + ' paradas · ' + ent + ' completadas');
+    if (ent > 0) toast('✅ ' + ent + ' entrega(s) ya registradas');
+
+    renderBanner(); renderPedidos(); renderPagos();
+    mostrarBannerGPS(); pedirGPS();
+    window.addEventListener('beforeunload', checkSalida);
+  } catch(e) {
+    setRepSync('error', 'Error: ' + e.message);
+    document.getElementById('pedidos-list').innerHTML =
+      '<p style="padding:20px 16px;color:#c62828;">No se pudo cargar la ruta. Pide un enlace nuevo.</p>';
+  }
+}
+
+// =====================================================
+// LEER / GUARDAR ESTADOS DESDE SHEETS
+// Columnas en pestaña "Registros": Fecha,Hora,Coche,Código,Cliente,Dir,Pob,Método,Importe,Estado,Incidencia
+// =====================================================
+async function leerEstadosSheets() {
+  try {
+    const url = SCRIPT + '?action=leerEstados&coche=' + encodeURIComponent(repCoche);
+    const r = await fetch(url, {redirect: 'follow'});
+    const data = await r.json();
+    if (!data.ok || !data.estados) return {};
+    return data.estados;
+  } catch(e) { return {}; }
+}
+
+async function guardarEstado(p) {
+  // Guarda el estado de UN pedido en Sheets
+  try {
+    await api({
+      action: 'registrarEntrega',
+      datos: JSON.stringify({
+        coche:     repCoche,
+        codigo:    p.cod,
+        nombre:    p.info.nombre,
+        direccion: p.info.direccion || '',
+        poblacion: p.info.poblacion || '',
+        metodo:    p.pago ? p.pago.metodo : '',
+        importe:   p.pago ? p.pago.importe : 0,
+        estado:    p.estado,
+        incidencia:p.incidencia || '',
+        rutaId:    rutaId
+      })
+    });
+  } catch(e) {}
+}
+
+// =====================================================
+// GPS
+// =====================================================
+function mostrarBannerGPS() {
+  document.getElementById('gps-wrap').innerHTML = `
+    <div class="banner banner-orange">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#e65100;">📍 Activa el GPS para optimizar la ruta</div>
+        <div style="font-size:11px;color:#bf360c;margin-top:2px;">Ordenará los clientes por proximidad</div>
+      </div>
+      <button class="btn-sm" style="background:#e65100;color:#fff;border:none;flex-shrink:0;" onclick="pedirGPS()">Activar GPS</button>
+    </div>`;
+}
+
+function pedirGPS() {
+  if (!navigator.geolocation) { toast('GPS no disponible'); return; }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      gps = {lat: pos.coords.latitude, lng: pos.coords.longitude};
+      document.getElementById('gps-wrap').innerHTML = '';
+      toast('✅ GPS activado — optimizando ruta...');
+      optimizarRuta().then(() => iniciarWatch());
+    },
+    err => toast(err.code===1 ? '⚠ Permiso GPS denegado' : '⚠ No se pudo obtener ubicación'),
+    {enableHighAccuracy:true, timeout:15000, maximumAge:0}
+  );
+}
+
+function iniciarWatch() {
+  if (watchId) navigator.geolocation.clearWatch(watchId);
+  watchId = navigator.geolocation.watchPosition(pos => {
+    gps = {lat:pos.coords.latitude, lng:pos.coords.longitude};
+    checkCercania(); checkReordenar();
+  }, null, {enableHighAccuracy:true, maximumAge:15000});
+}
+
+async function optimizarRuta() {
+  if (!gps) return;
+  const pend = pedidos.filter(p => p.estado==='pendiente' && !p.horarioFijo && p.lat && p.lng);
+  if (pend.length < 2) return;
+  try {
+    const dests = pend.map(p => p.lat+','+p.lng).join('|');
+    const r = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?origins=${gps.lat},${gps.lng}&destinations=${dests}&mode=driving&key=${MAPS_KEY}`);
+    const d = await r.json();
+    if (!d.rows||!d.rows[0]) return;
+    let pool = pend.map((p,i) => ({...p, metros: d.rows[0].elements[i]?.distance?.value||999999}));
+    let orden = [], pos = {...gps};
+    while (pool.length) {
+      let mi=0, md=Infinity;
+      pool.forEach((p,i) => { const dd=distKm(pos.lat,pos.lng,p.lat,p.lng); if(dd<md){md=dd;mi=i;} });
+      const e = pool.splice(mi,1)[0]; pos={lat:e.lat,lng:e.lng}; orden.push(e);
+    }
+    const fijos  = pedidos.filter(p => p.estado==='pendiente' && p.horarioFijo);
+    const hechos = pedidos.filter(p => p.estado!=='pendiente');
+    pedidos.length=0; pedidos.push(...orden,...fijos,...hechos);
+    pedidos.forEach((p,i) => p.pos=i+1);
+    toast('✅ Ruta optimizada'); renderBanner(); renderPedidos();
+  } catch(e) {}
+}
+
+function checkCercania() {
+  if (!gps) return;
+  const pend = pedidos.filter(p => p.estado==='pendiente'&&p.lat&&p.lng);
+  const sig = pend[0];
+  const cerca = pend.filter(p => p.cod!==sig?.cod && distKm(gps.lat,gps.lng,p.lat,p.lng)<0.35);
+  document.getElementById('alert-wrap').innerHTML = cerca.length ? `
+    <div class="banner banner-orange" style="margin-top:6px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;color:#e65100;">📍 Cerca: ${cerca[0].info.nombre}</div>
+        <div style="font-size:11px;color:#bf360c;">A menos de 350m</div>
+      </div>
+      <button class="btn-sm" style="background:#e65100;color:#fff;border:none;" onclick="navegarA('${cerca[0].cod}')">IR</button>
+    </div>` : '';
+}
+
+function checkReordenar() {
+  if (!gps) return;
+  const pend = pedidos.filter(p=>p.estado==='pendiente'&&!p.horarioFijo&&p.lat&&p.lng);
+  if (pend.length<2) return;
+  const sig=pend[0], dSig=distKm(gps.lat,gps.lng,sig.lat,sig.lng);
+  let mejor=sig, dM=dSig;
+  pend.slice(1).forEach(p=>{const d=distKm(gps.lat,gps.lng,p.lat,p.lng);if(d<dM){dM=d;mejor=p;}});
+  if (mejor.cod!==sig.cod && dM<dSig*0.5) {
+    const i1=pedidos.findIndex(p=>p.cod===mejor.cod), i2=pedidos.findIndex(p=>p.cod===sig.cod);
+    pedidos.splice(i1,1); pedidos.splice(i2,0,mejor);
+    pedidos.forEach((p,i)=>p.pos=i+1);
+    toast('📍 '+mejor.info.nombre+' es más cercano'); renderBanner(); renderPedidos();
+  }
+}
+
+function distKm(la1,lo1,la2,lo2){
+  const R=6371,dL=(la2-la1)*Math.PI/180,dG=(lo2-lo1)*Math.PI/180;
+  const a=Math.sin(dL/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dG/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+async function geocodificar(clientes) {
+  return Promise.all(clientes.map(async c => {
+    try {
+      const dir=[c.direccion,c.poblacion,c.cp,'Las Palmas de Gran Canaria'].filter(Boolean).join(', ');
+      const r=await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(dir)}&key=${MAPS_KEY}`);
+      const d=await r.json();
+      if(d.results&&d.results[0]){const l=d.results[0].geometry.location;return{...c,lat:l.lat,lng:l.lng};}
+    }catch(e){}
+    return {...c,lat:null,lng:null};
+  }));
+}
+
+// =====================================================
+// RENDER REPARTIDOR
+// =====================================================
+function renderBanner() {
+  const sig=pedidos.find(p=>p.estado==='pendiente');
+  const w=document.getElementById('next-wrap');
+  if(!sig){w.innerHTML='<div class="banner banner-green" style="margin-top:10px;"><div style="font-size:14px;font-weight:700;color:#2e7d0a;">✅ ¡Todas las entregas completadas!</div></div>';return;}
+  w.innerHTML=`<div class="banner banner-blue" style="margin-top:10px;">
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:13px;font-weight:600;color:#1565c0;">➡ Siguiente: ${sig.info.nombre}</div>
+      <div style="font-size:11px;color:#1976d2;margin-top:2px;">${[sig.info.direccion,sig.info.poblacion].filter(Boolean).join(' · ')}</div>
+      ${sig.horarioFijo?`<div style="font-size:11px;color:#e65100;margin-top:2px;">🕐 ${sig.horarioFijo}</div>`:''}
+    </div>
+    <button class="btn-sm" style="background:#1565c0;color:#fff;border:none;flex-shrink:0;" onclick="navegarA('${sig.cod}')">🗺 IR</button>
+  </div>`;
+}
+
+function renderPedidos() {
+  const list=document.getElementById('pedidos-list');
+  if(!pedidos.length){list.innerHTML='<p style="padding:20px 16px;color:#999;font-size:13px;">Sin pedidos.</p>';return;}
+  const sig=pedidos.find(p=>p.estado==='pendiente');
+  list.innerHTML=pedidos.map(p=>{
+    const ent=p.estado==='entregado', inc=p.estado==='incidencia';
+    const esSig=!ent&&!inc&&sig?.cod===p.cod;
+    if(ent||inc) return `<div class="pedido-card ${ent?'entregado':'incidencia-card'}">
+      <div class="pedido-header">
+        <div style="flex:1;">
+          <div class="pedido-nombre" style="color:${ent?'#2e7d0a':'#f57f17'};">${ent?'✅':'⚠️'} #${p.cod} · ${p.info.nombre}</div>
+          <div class="pedido-estado" style="color:${ent?'#388e3c':'#f57f17'};">${ent?'Entregado · '+p.pago.metodo+(p.pago.importe>0?' · '+p.pago.importe.toFixed(2)+' €':''):'Incidencia: '+p.incidencia}</div>
+        </div>
+        <div class="pos-circle ${ent?'done':'inc'}">${ent?'✓':'!'}</div>
+      </div>
+      ${p.info.direccion?`<div class="pedido-dir">📍 ${p.info.direccion}</div>`:''}
+    </div>`;
+    const gpsEnc=encodeURIComponent([p.info.direccion,p.info.poblacion,p.info.cp,'Las Palmas de Gran Canaria'].filter(Boolean).join(', '));
+    const tlf=(p.info.movil&&p.info.movil!='0'&&p.info.movil!='undefined')?p.info.movil:(p.info.telefono&&p.info.telefono!='0'?p.info.telefono:'');
+    return `<div class="pedido-card ${esSig?'activo':''}">
+      <div class="pedido-header">
+        <div style="flex:1;">
+          <div class="pedido-nombre">${esSig?'▶ ':''}#${p.cod} · ${p.info.nombre}</div>
+          <div class="pedido-estado">${esSig?'Siguiente parada':'Pendiente'}</div>
+        </div>
+        <div class="pos-circle ${esSig?'activo':''}" onclick="abrirOrden('${p.cod}')">${p.pos}</div>
+      </div>
+      ${p.info.direccion?`<div class="pedido-dir">📍 ${p.info.direccion}</div>`:''}
+      ${p.info.poblacion?`<div class="pedido-pob">${p.info.poblacion}${p.info.cp?' · '+p.info.cp:''}</div>`:''}
+      ${p.horarioFijo?`<div class="pedido-horario">🕐 ${p.horarioFijo}</div>`:''}
+      <div class="pedido-actions">
+        <button class="btn-sm" style="${esSig?'background:#1565c0;color:#fff;border:none;':''}" onclick="navegarA('${p.cod}')">🗺 Navegar</button>
+        <button class="btn-sm" onclick="abrirPago('${p.cod}')">💶 Cobrar</button>
+        ${tlf?`<button class="btn-sm" onclick="window.location='tel:${tlf}'">📞</button>`:''}
+        <button class="btn-sm" onclick="abrirInc('${p.cod}')">⚠ Inc.</button>
+        <button class="btn-sm" style="background:#fff3e0;color:#e65100;border-color:#ffcc02;" onclick="abrirOrden('${p.cod}')">↕ Orden</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function navegarA(cod){
+  const p=pedidos.find(x=>x.cod===cod);if(!p)return;
+  window.open('https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent([p.info.direccion,p.info.poblacion,p.info.cp,'Las Palmas de Gran Canaria'].filter(Boolean).join(', '))+'&travelmode=driving','_blank');
+}
+
+// =====================================================
+// COBRO E INCIDENCIA
+// =====================================================
+function abrirPago(cod){
+  pagoActivo=cod; metodo='contado';
+  const p=pedidos.find(x=>x.cod===cod);
+  document.getElementById('pago-title').textContent='Cobro · '+p.info.nombre;
+  document.getElementById('importe-inp').value='';
+  ['contado','tarjeta','transferencia'].forEach(m=>document.getElementById('opt-'+m).classList.toggle('sel',m==='contado'));
+  document.getElementById('importe-wrap').style.display='block';
+  document.getElementById('modal-pago').style.display='flex';
+}
+function selMetodo(m){
+  metodo=m;
+  ['contado','tarjeta','transferencia'].forEach(x=>document.getElementById('opt-'+x).classList.toggle('sel',x===m));
+  document.getElementById('importe-wrap').style.display=m==='transferencia'?'none':'block';
+}
+async function confirmarPago(){
+  const imp=metodo==='transferencia'?0:parseFloat(document.getElementById('importe-inp').value)||0;
+  if(metodo!=='transferencia'&&imp<=0){alert('Introduce el importe.');return;}
+  const p=pedidos.find(x=>x.cod===pagoActivo);
+  p.estado='entregado'; p.pago={metodo,importe:imp};
+  cobros.push({cod:pagoActivo,nombre:p.info.nombre,metodo,importe:imp});
+  stats.entregados++;
+  closeModal('modal-pago');
+  renderBanner(); renderPedidos(); renderPagos();
+  // Guardar en Sheets — esto es lo que persiste al recargar
+  await guardarEstado(p);
+  toast('✅ Entrega guardada');
+  const sig=pedidos.find(x=>x.estado==='pendiente');
+  if(sig) setTimeout(()=>navegarA(sig.cod),1000);
+}
+
+function abrirInc(cod){incActiva=cod;document.getElementById('modal-inc').style.display='flex';}
+async function confirmarInc(tipo){
+  const p=pedidos.find(x=>x.cod===incActiva);
+  p.estado='incidencia'; p.incidencia=tipo;
+  stats.incidencias++;
+  closeModal('modal-inc'); renderBanner(); renderPedidos();
+  await guardarEstado(p);
+  toast('⚠ Incidencia guardada');
+}
+
+function checkSalida(e){
+  if(!gps)return;
+  const cerca=pedidos.filter(p=>p.estado==='pendiente'&&p.lat&&p.lng&&distKm(gps.lat,gps.lng,p.lat,p.lng)<2);
+  if(cerca.length){
+    e.preventDefault();e.returnValue='';
+    document.getElementById('salir-lista').innerHTML=cerca.map(c=>`<div style="font-size:13px;padding:3px 0;color:#c62828;">• ${c.info.nombre}</div>`).join('');
+    document.getElementById('modal-salir').style.display='flex';
+  }
+}
+async function confirmarSalida(){
+  const motivo=document.getElementById('salir-motivo').value.trim();
+  if(!motivo){alert('Escribe el motivo.');return;}
+  for(const p of pedidos.filter(x=>x.estado==='pendiente')){
+    p.estado='sin entregar'; p.incidencia='Salida: '+motivo;
+    await guardarEstado(p);
+  }
+  window.removeEventListener('beforeunload',checkSalida);
+  closeModal('modal-salir'); toast('Registrado.');
+}
+
+// ORDEN
+function abrirOrden(cod){
+  ordenActivo=cod;
+  const p=pedidos.find(x=>x.cod===cod);
+  document.getElementById('orden-sub').textContent='#'+cod+' · '+p.info.nombre+' — Pos. actual: '+p.pos;
+  document.getElementById('orden-pos').value=p.pos;
+  document.getElementById('orden-horario').value=p.horarioFijo||'';
+  document.getElementById('modal-orden').style.display='flex';
+}
+function confirmarOrden(){
+  const pos=parseInt(document.getElementById('orden-pos').value);
+  const horario=document.getElementById('orden-horario').value.trim();
+  if(!pos||pos<1||pos>pedidos.length){alert('Posición no válida.');return;}
+  const idx=pedidos.findIndex(p=>p.cod===ordenActivo);
+  const p=pedidos.splice(idx,1)[0]; p.horarioFijo=horario||null;
+  pedidos.splice(pos-1,0,p); pedidos.forEach((x,i)=>x.pos=i+1);
+  closeModal('modal-orden'); toast('Orden actualizado'+(horario?' · Horario: '+horario:''));
+  renderBanner(); renderPedidos();
+}
+
+// PAGOS Y RESUMEN
+function renderPagos(){
+  const tC=cobros.filter(c=>c.metodo==='contado').reduce((a,c)=>a+c.importe,0);
+  const tT=cobros.filter(c=>c.metodo==='tarjeta').reduce((a,c)=>a+c.importe,0);
+  const tP=cobros.filter(c=>c.metodo==='transferencia').length;
+  document.getElementById('rt-contado').textContent=tC.toFixed(2)+' €';
+  document.getElementById('rt-tarjeta').textContent=tT.toFixed(2)+' €';
+  document.getElementById('rt-pend').textContent=tP;
+  document.getElementById('rep-cobros').innerHTML=cobros.length?cobros.map(c=>`<div class="cobro-row"><div><div style="font-weight:500;">${c.nombre}</div><div style="font-size:11px;color:#888;">${c.metodo}</div></div><div style="font-weight:600;">${c.metodo==='transferencia'?'Pendiente':c.importe.toFixed(2)+' €'}</div></div>`).join(''):'<p style="font-size:13px;color:#999;padding:12px 0;">Sin cobros.</p>';
+}
+function renderResumen(){
+  const tC=cobros.filter(c=>c.metodo==='contado').reduce((a,c)=>a+c.importe,0);
+  const tT=cobros.filter(c=>c.metodo==='tarjeta').reduce((a,c)=>a+c.importe,0);
+  document.getElementById('rr-ent').textContent=stats.entregados;
+  document.getElementById('rr-inc').textContent=stats.incidencias;
+  document.getElementById('rr-pend').textContent=pedidos.filter(p=>p.estado==='pendiente').length;
+  document.getElementById('rr-contado').textContent=tC.toFixed(2)+' €';
+  document.getElementById('rr-tarjeta').textContent=tT.toFixed(2)+' €';
+  document.getElementById('rr-transf').textContent=cobros.filter(c=>c.metodo==='transferencia').length+' pedidos';
+  document.getElementById('rr-total').textContent=(tC+tT).toFixed(2)+' €';
+}
+
+// =====================================================
+// JEFE
+// =====================================================
+function cargarEstadoJefe(){
+  try{
+    const raw=localStorage.getItem('hm_jefe');if(!raw)return;
+    const d=JSON.parse(raw);
+    if(d.fecha!==new Date().toDateString()){localStorage.removeItem('hm_jefe');return;}
+    rutas=d.rutas||{coche1:[],coche2:[],coche3:[]};
+    historial=d.historial||{coche1:[],coche2:[],coche3:[]};
+  }catch(e){}
+}
+function guardarEstadoJefe(){
+  try{localStorage.setItem('hm_jefe',JSON.stringify({fecha:new Date().toDateString(),rutas,historial}));}catch(e){}
+}
+
+async function cargarClientes(){
+  setSync('loading','Conectando...');
+  try{
+    const d=await api({action:'clientes'});
+    if(!d.ok)throw new Error();
+    clientesDB={};d.clientes.forEach(c=>{clientesDB[String(c.codigo).trim()]=c;});
+    setSync('ok','✓ '+Object.keys(clientesDB).length+' clientes');
+  }catch(e){setSync('error','Error de conexión');}
+}
+
+function renderCoches(){
+  document.getElementById('coches-grid').innerHTML=COCHES.map(c=>{
+    const n=(rutas[c.id]||[]).length, h=(historial[c.id]||[]).length;
+    return `<div class="coche-card ${n>0?'tiene':''} ${cocheActivo===c.id?'selected':''}" onclick="selCoche('${c.id}')">
+      ${h>0?`<div class="coche-badge">${h}</div>`:''}
+      <div class="coche-icon">${c.icon}</div>
+      <div class="coche-nombre">${c.nombre}</div>
+      <div class="coche-count">${h>0?h+' ruta'+(h>1?'s':'')+' hoy':'Sin rutas hoy'}</div>
+    </div>`;
+  }).join('');
+}
+function selCoche(id){
+  cocheActivo=id;
+  document.getElementById('panel-coche').style.display='block';
+  const c=COCHES.find(x=>x.id===id);
+  document.getElementById('coche-label').textContent=c.icon+' '+c.nombre;
+  renderCoches();renderListaCoche();
+}
+function renderListaCoche(){
+  const lista=document.getElementById('lista-coche');
+  const cl=rutas[cocheActivo]||[];
+  if(!cl.length){lista.innerHTML='<p style="font-size:13px;color:#999;padding:12px 16px;">Sin clientes en preparación.</p>';return;}
+  lista.innerHTML='<p class="section-title">Clientes en preparación</p>'+cl.map(c=>`<div class="cliente-item"><div><div class="cliente-cod">#${c.codigo}</div><div class="cliente-nombre">${c.nombre}</div><div class="cliente-dir">${[c.direccion,c.poblacion].filter(Boolean).join(', ')}</div></div><button class="btn-sm btn-danger" onclick="quitarCliente('${c.codigo}')">✕</button></div>`).join('');
+}
+function buscarJefe(){
+  if(!cocheActivo){alert('Selecciona un repartidor.');return;}
+  const cod=document.getElementById('cod-jefe').value.trim();
+  const prev=document.getElementById('preview-jefe');
+  const c=clientesDB[cod];
+  if(!c){prev.innerHTML=`<div class="alert-box">Código <b>${cod}</b> no encontrado.</div>`;return;}
+  if((rutas[cocheActivo]||[]).find(x=>x.codigo===cod)){prev.innerHTML=`<div class="info-box">${c.nombre} ya está.</div>`;return;}
+  prev.innerHTML=`<div class="preview-box"><div class="preview-nombre">${c.nombre}</div>${c.direccion?`<div class="preview-meta">📍 ${c.direccion}</div>`:''}${c.poblacion?`<div class="preview-meta">🏘 ${c.poblacion}</div>`:''}<button class="btn btn-primary" style="margin-top:10px;" onclick="anyadirCliente('${cod}')">+ Añadir a ${COCHES.find(x=>x.id===cocheActivo).nombre}</button></div>`;
+  document.getElementById('cod-jefe').value='';
+}
+function anyadirCliente(cod){
+  if(!rutas[cocheActivo])rutas[cocheActivo]=[];
+  rutas[cocheActivo].push(clientesDB[cod]);
+  document.getElementById('preview-jefe').innerHTML='';
+  guardarEstadoJefe();renderCoches();renderListaCoche();
+}
+function quitarCliente(cod){rutas[cocheActivo]=(rutas[cocheActivo]||[]).filter(c=>c.codigo!==cod);guardarEstadoJefe();renderCoches();renderListaCoche();}
+function limpiarCoche(){if(!confirm('¿Vaciar?'))return;rutas[cocheActivo]=[];guardarEstadoJefe();renderCoches();renderListaCoche();}
+
+function abrirCompartir(){
+  if(!cocheActivo||!(rutas[cocheActivo]||[]).length){alert('Añade clientes primero.');return;}
+  document.getElementById('share-s1').style.display='block';
+  document.getElementById('share-s2').style.display='none';
+  const btn=document.getElementById('btn-gen');btn.disabled=false;btn.textContent='Guardar y generar enlace';
+  shareCoheId=cocheActivo;
+  document.getElementById('share-title').textContent='Compartir · '+COCHES.find(x=>x.id===cocheActivo).nombre;
+  document.getElementById('modal-share').style.display='flex';
+}
+async function generarEnlace(){
+  const btn=document.getElementById('btn-gen');btn.disabled=true;btn.textContent='Guardando...';
+  try{
+    const c=COCHES.find(x=>x.id===shareCoheId);
+    const d=await api({action:'guardarRuta',coche:c.nombre,clientes:JSON.stringify(rutas[shareCoheId])});
+    if(!d.ok)throw new Error(d.error||'Error');
+    shareUrl=APP_URL+'?ruta='+encodeURIComponent(d.id);
+    const hora=new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+    if(!historial[shareCoheId])historial[shareCoheId]=[];
+    historial[shareCoheId].push({id:d.id,url:shareUrl,clientes:[...rutas[shareCoheId]],hora});
+    rutas[shareCoheId]=[];
+    guardarEstadoJefe();
+    document.getElementById('share-url-txt').textContent=shareUrl;
+    document.getElementById('share-s1').style.display='none';
+    document.getElementById('share-s2').style.display='block';
+    renderCoches();renderListaCoche();
+    toast('✓ Ruta enviada');
+  }catch(e){btn.disabled=false;btn.textContent='Reintentar';toast('❌ '+e.message);}
+}
+function copiarEnlace(){navigator.clipboard.writeText(shareUrl).then(()=>toast('¡Copiado!'));}
+function enviarWA(){const c=COCHES.find(x=>x.id===shareCoheId);window.open('https://wa.me/?text='+encodeURIComponent('Tu ruta de hoy ('+c.nombre+'):\n'+shareUrl),'_blank');}
+
+function renderHistorial(){
+  const wrap=document.getElementById('historial-wrap');
+  let html='';
+  COCHES.forEach(c=>{
+    const h=historial[c.id]||[];if(!h.length)return;
+    html+=`<div style="margin-bottom:16px;"><div style="font-size:14px;font-weight:700;margin-bottom:8px;">${c.icon} ${c.nombre}</div>
+    ${h.map((r,i)=>`<div class="ruta-hist">
+      <div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:500;">Ruta ${i+1} · ${r.clientes.length} paradas · ${r.hora}</div>
+      <div style="font-size:11px;color:#888;margin-top:2px;">${r.clientes.slice(0,2).map(x=>x.nombre).join(', ')}${r.clientes.length>2?'...':''}</div></div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button class="btn-sm" onclick="verRuta('${c.id}',${i})">Ver</button>
+        <button class="btn-sm" style="background:#e6f4d7;color:#2e7d0a;border-color:#b5d98a;" onclick="reenviarRuta('${c.id}',${i})">Reenviar</button>
+      </div></div>`).join('')}</div>`;
+  });
+  wrap.innerHTML=html||'<p style="font-size:13px;color:#999;padding:12px 0;">No hay rutas enviadas hoy.</p>';
+}
+function verRuta(cId,idx){
+  const r=historial[cId][idx],c=COCHES.find(x=>x.id===cId);
+  document.getElementById('ver-title').textContent=c.icon+' '+c.nombre+' · Ruta '+(idx+1)+' · '+r.hora;
+  document.getElementById('ver-body').innerHTML=r.clientes.map((cl,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f5f5f5;"><div style="width:24px;height:24px;border-radius:50%;background:#1565c0;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i+1}</div><div><div style="font-size:13px;font-weight:500;">#${cl.codigo} · ${cl.nombre}</div><div style="font-size:11px;color:#888;">${[cl.direccion,cl.poblacion].filter(Boolean).join(', ')}</div></div></div>`).join('')+`<div style="margin-top:12px;background:#f0f7ff;border-radius:10px;padding:10px;font-size:12px;color:#1565c0;word-break:break-all;">${r.url}</div>`;
+  document.getElementById('ver-wa').onclick=()=>{shareCoheId=cId;shareUrl=r.url;enviarWA();};
+  document.getElementById('modal-ver').style.display='flex';
+}
+function reenviarRuta(cId,idx){
+  const r=historial[cId][idx],c=COCHES.find(x=>x.id===cId);
+  shareCoheId=cId;shareUrl=r.url;
+  document.getElementById('share-title').textContent='Reenviar · '+c.nombre+' · Ruta '+(idx+1);
+  document.getElementById('share-url-txt').textContent=r.url;
+  document.getElementById('share-s1').style.display='none';
+  document.getElementById('share-s2').style.display='block';
+  document.getElementById('modal-share').style.display='flex';
+}
+
+// =====================================================
+// API Y UTILS
+// =====================================================
+async function api(params){
+  const qs=Object.entries(params).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
+  const r=await fetch(SCRIPT+'?'+qs);
+  return await r.json();
+}
+
+function mostrarVista(id){
+  document.getElementById('vista-loading').style.display='none';
+  ['vista-jefe','vista-repartidor'].forEach(v=>{
+    const el=document.getElementById(v);
+    el.style.display=v===id?'flex':'none';
+    if(v===id)el.style.flexDirection='column';
+  });
+}
+function setSync(s,t){document.getElementById('sync-dot').className='dot'+(s==='loading'?' loading':s==='error'?' error':'');document.getElementById('sync-txt').textContent=t;}
+function setRepSync(s,t){document.getElementById('rep-sync-dot').className='dot'+(s==='loading'?' loading':s==='error'?' error':'');document.getElementById('rep-sync-txt').textContent=t;}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
+function closeModal(id){document.getElementById(id).style.display='none';}
+function switchTabJefe(tab){
+  document.querySelectorAll('#vista-jefe .tab').forEach((t,i)=>t.classList.toggle('active',['asignar','historial'][i]===tab));
+  document.querySelectorAll('#vista-jefe .screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('jefe-'+tab).classList.add('active');
+  if(tab==='historial')renderHistorial();
+}
+function switchTabRep(tab){
+  document.querySelectorAll('#vista-repartidor .tab').forEach((t,i)=>t.classList.toggle('active',['ruta','pagos','resumen'][i]===tab));
+  document.querySelectorAll('#vista-repartidor .screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('rep-'+tab).classList.add('active');
+  if(tab==='resumen')renderResumen();
+  if(tab==='pagos')renderPagos();
+}
+document.getElementById('cod-jefe')&&document.getElementById('cod-jefe').addEventListener('keydown',e=>{if(e.key==='Enter')buscarJefe();});
+</script>
+</body>
+</html>
