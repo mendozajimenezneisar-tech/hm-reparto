@@ -215,6 +215,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         <button class="btn btn-cancel" onclick="closeModal('modal-share')">Cerrar</button>
         <button class="btn btn-primary" onclick="copiarEnlace()">Copiar</button>
         <button class="btn btn-success" onclick="enviarWA()">WhatsApp</button>
+        <button class="btn btn-primary" style="background:#5e35b1;" onclick="enviarCorreo()">✉ Correo</button>
       </div>
     </div>
   </div>
@@ -794,6 +795,12 @@ async function generarEnlace(){
 }
 function copiarEnlace(){navigator.clipboard.writeText(shareUrl).then(()=>toast('¡Copiado!'));}
 function enviarWA(){const c=COCHES.find(x=>x.id===shareCoheId);window.open('https://wa.me/?text='+encodeURIComponent('Tu ruta de hoy ('+c.nombre+'):\n'+shareUrl),'_blank');}
+function enviarCorreo(){
+  const c=COCHES.find(x=>x.id===shareCoheId);
+  const asunto='Tu ruta de hoy · '+c.nombre;
+  const cuerpo='Hola '+c.nombre+',\n\nEsta es tu ruta de reparto de hoy. Ábrela en el móvil para verla con GPS:\n\n'+shareUrl+'\n\nHM Distribuciones';
+  window.location.href='mailto:?subject='+encodeURIComponent(asunto)+'&body='+encodeURIComponent(cuerpo);
+}
 
 function renderHistorial(){
   const wrap=document.getElementById('historial-wrap');
